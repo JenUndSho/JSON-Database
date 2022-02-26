@@ -1,13 +1,10 @@
 package server;
 
-import client.Args;
 import com.google.gson.*;
-import com.google.gson.stream.JsonReader;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Set;
 
 import static server.Constants.*;
 
@@ -57,7 +54,7 @@ public class JsonDataBase {
             } catch (Exception e) {
                 db.addProperty(key, str.replace("\"", ""));
             }
-//            db.addProperty(key, str);
+
             file.write(db.toString());
 
             response.addProperty("response", OK);
@@ -79,12 +76,10 @@ public class JsonDataBase {
 
         try (FileWriter file = new FileWriter(FILE_PATH);) {
 
-        findElement(keys, true)
-                .getAsJsonObject()
-                .addProperty(keys.remove(keys.size() - 1)
-                .getAsString(), str.replace("\"", ""));
-
- //           db.getAsJsonObject(key.get(0).getAsString()).getAsJsonObject(key.get(1).getAsString()).addProperty(key.get(2).getAsString(), str.replace("\"", ""));
+            findElement(keys, true)
+                    .getAsJsonObject()
+                    .addProperty(keys.remove(keys.size() - 1)
+                    .getAsString(), str.replace("\"", ""));
 
             file.write(db.toString());
 
@@ -144,7 +139,6 @@ public class JsonDataBase {
                     } catch (Exception e) {
                         return set(newJsonObj.getAsJsonArray("key"), newJsonObj.get("value").toString());
                     }
-
                 }
                 case "delete": {
                     return delete(newJsonObj.get("key"));
@@ -153,26 +147,6 @@ public class JsonDataBase {
                     return "exit";
             }
         }
-
-//        Args args = gson.fromJson(line, Args.class);
-
-//        while (true) {
-//            switch (args.getType()) {
-//                case "get": {
-//                    return get(args.getKey());
-//                }
-//                case "set": {
-//                    return set(args.getKey(), args.getValue());
-//                 //   return set(args.getKey(), args.jsonObject.toString());
-//                }
-//                case "delete": {
-//                    return delete(args.getKey());
-//                }
-//                case "exit":
-//                    return "exit";
-//            }
-//        }
-
     }
 
     public JsonElement findElement(JsonArray keys, boolean toEdit) {
