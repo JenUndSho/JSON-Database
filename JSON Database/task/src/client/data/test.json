@@ -1,0 +1,15 @@
+{
+  "type":"set",
+  "key":"person",
+  "value":{
+    "name":"Evhenii",
+    "car":{
+      "model":"Tesla Roadster",
+      "year":"2018"
+    },
+    "rocket":{
+      "name":"Falcon 9",
+      "launches":"88"
+    }
+  }
+}
