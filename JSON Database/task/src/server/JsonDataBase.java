@@ -5,6 +5,9 @@ import com.google.gson.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static server.Constants.*;
 
@@ -12,6 +15,14 @@ public class JsonDataBase {
     private JsonObject response;
     Gson gson;
     private JsonObject db = new JsonObject();
+    private final Lock readLock;
+    private final Lock writeLock;
+
+    {
+        ReadWriteLock lock = new ReentrantReadWriteLock();
+        writeLock = lock.writeLock();
+        readLock = lock.readLock();
+    }
 
     public JsonDataBase() {
         gson = new Gson();
@@ -22,6 +33,7 @@ public class JsonDataBase {
         response.addProperty("response", OK);
         String value = "";
         try (Reader reader = Files.newBufferedReader(Paths.get(FILE_PATH));) {
+            readLock.lock();
             db = gson.fromJson(reader, JsonObject.class);
 
             if (key.isJsonPrimitive() && db.has(key.getAsString())) {
@@ -39,6 +51,8 @@ public class JsonDataBase {
         } catch (Exception e) {
             response.addProperty("response", ERROR);
             response.addProperty("reason", NO_SUCK_KEY);
+        } finally {
+            readLock.unlock();
         }
 
         return response.toString();
@@ -47,6 +61,7 @@ public class JsonDataBase {
     public String set(String key, String str) {
         response = new JsonObject();
         try (FileWriter file = new FileWriter(FILE_PATH);) {
+            writeLock.lock();
             try {
                 JsonObject value;
                 value = gson.fromJson(str, JsonObject.class);
@@ -60,6 +75,8 @@ public class JsonDataBase {
             response.addProperty("response", OK);
         } catch (Exception e) {
             response.addProperty("response", ERROR);
+        } finally {
+            writeLock.unlock();
         }
 
         return response.toString();
@@ -69,12 +86,16 @@ public class JsonDataBase {
         response = new JsonObject();
 
         try (Reader reader = Files.newBufferedReader(Paths.get(FILE_PATH));) {
+            readLock.lock();
             db = gson.fromJson(reader, JsonObject.class);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            readLock.unlock();
         }
 
         try (FileWriter file = new FileWriter(FILE_PATH);) {
+            writeLock.lock();
 
             findElement(keys, true)
                     .getAsJsonObject()
@@ -86,6 +107,8 @@ public class JsonDataBase {
             response.addProperty("response", OK);
         } catch (Exception e) {
             response.addProperty("response", ERROR);
+        } finally {
+            writeLock.unlock();
         }
 
         return response.toString();
@@ -94,6 +117,7 @@ public class JsonDataBase {
     public String delete(JsonElement key) {
         response = new JsonObject();
         try (Reader reader = Files.newBufferedReader(Paths.get(FILE_PATH));) {
+            readLock.lock();
             db = gson.fromJson(reader, JsonObject.class);
 
             if (key.isJsonPrimitive() && db.has(key.getAsString())) {
@@ -114,12 +138,17 @@ public class JsonDataBase {
             } catch(Exception e){
                 response.addProperty("response", ERROR);
                 response.addProperty("reason", NO_SUCK_KEY);
-            }
+            } finally {
+            readLock.unlock();
+        }
 
             try (FileWriter file = new FileWriter(FILE_PATH)) {
+                writeLock.lock();
                 file.write(db.toString());
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                writeLock.unlock();
             }
 
             return response.toString();

@@ -24,10 +24,15 @@ public class Main {
                 ) {
                     String str = input.readUTF();
                     System.out.println(str);
-                    ClientHandler ch = new ClientHandler(js, str);
-                    ch.start();
-                    ch.join();
-                    response = ch.getResponse();
+//                    ClientHandler ch = new ClientHandler(js, str);
+//                    ch.start();
+//                    ch.join();
+                    Thread t = new ClientHandler(js, str);
+
+                    // Invoking the start() method
+                    t.start();
+                    t.join();
+                    response = ((ClientHandler) t).getResponse();
 
                     if (response.equals("exit")) {
                         output.writeUTF("{\"response\":\"OK\"}");
